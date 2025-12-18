@@ -324,28 +324,58 @@ function initCharts(stats, events) {
     const ctx1 = document.getElementById('budgetChart');
     const ctx2 = document.getElementById('regChart');
 
+    // 1. Calculate Real Budget Data
+    const totalBudget = events.reduce((sum, e) => sum + (Number(e.budget) || 0), 0);
+    // For now, spent is 0 since we don't have expenses yet
+    const spent = 0;
+    const remaining = totalBudget - spent;
+
     if (ctx1) {
+        // Destroy existing chart if it exists to prevent overlap on reload
+        const existingChart = Chart.getChart(ctx1);
+        if (existingChart) existingChart.destroy();
+
         new Chart(ctx1, {
             type: 'doughnut',
             data: {
-                labels: ['Allocated Budget', 'Spent', 'Remaining'],
+                labels: ['Total Budget', 'Spent', 'Available'],
                 datasets: [{
-                    data: [150000, 45000, 105000],
+                    data: totalBudget > 0 ? [totalBudget, spent, remaining] : [0, 0, 1], // Placeholder 1 for empty look
                     backgroundColor: ['#1F2A44', '#2FA4A9', '#e5e7eb']
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
         });
     }
 
+    // 2. Calculate Monthly Registrations
+    const monthlyCounts = new Array(6).fill(0);
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+
+    events.forEach(e => {
+        const date = new Date(e.date);
+        const month = date.getMonth();
+        if (month >= 0 && month < 6) {
+            monthlyCounts[month]++;
+        }
+    });
+
     if (ctx2) {
+        const existingChart2 = Chart.getChart(ctx2);
+        if (existingChart2) existingChart2.destroy();
+
         new Chart(ctx2, {
             type: 'bar',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: monthLabels,
                 datasets: [{
-                    label: 'Registrations',
-                    data: [12, 19, 3, 5, 2, 3],
+                    label: 'Events Created',
+                    data: monthlyCounts,
                     backgroundColor: '#1F2A44',
                     borderRadius: 5
                 }]
@@ -355,6 +385,7 @@ function initCharts(stats, events) {
                 scales: {
                     y: {
                         beginAtZero: true,
+                        ticks: { stepSize: 1 },
                         grid: { color: '#f1f5f9' }
                     },
                     x: {
