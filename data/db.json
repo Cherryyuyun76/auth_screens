@@ -20,30 +20,6 @@
   ],
   "vendors": [
     {
-      "id": 1766023838752,
-      "name": "cherry",
-      "category": "ff",
-      "contact": "fokundem653@gmail.com",
-      "status": "Active",
-      "rating": 5
-    },
-    {
-      "id": 1766023839408,
-      "name": "cherry",
-      "category": "ff",
-      "contact": "fokundem653@gmail.com",
-      "status": "Active",
-      "rating": 5
-    },
-    {
-      "id": 1766023839636,
-      "name": "cherry",
-      "category": "ff",
-      "contact": "fokundem653@gmail.com",
-      "status": "Active",
-      "rating": 5
-    },
-    {
       "id": 1766023840223,
       "name": "cherry",
       "category": "ff",
@@ -177,6 +153,6 @@
     "totalEvents": 1,
     "totalAttendees": 0,
     "totalRevenue": 0,
-    "activeVendors": 19
+    "activeVendors": 16
   }
 }

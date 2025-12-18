@@ -76,23 +76,37 @@ app.get('/api/events', (req, res) => {
 });
 
 app.post('/api/events', (req, res) => {
+    const { name, date, location, budget } = req.body;
+    if (!name || !date || !location) {
+        return res.status(400).json({ success: false, message: "Required fields missing: name, date, or location" });
+    }
+
     const db = readDB();
-    const newEvent = { id: Date.now(), ...req.body, status: 'Planning' };
+    const newEvent = {
+        id: Date.now(),
+        name: String(name),
+        date: String(date),
+        location: String(location),
+        budget: Number(budget) || 0,
+        status: 'Planning'
+    };
     db.events.push(newEvent);
-    db.stats.totalEvents += 1;
-    writeDB(db); // FIXED: Added missing writeDB
-    res.json({ success: true, event: newEvent });
+    db.stats.totalEvents = (db.stats.totalEvents || 0) + 1;
+    writeDB(db);
+    res.json({ success: true, message: "Event Added Successfully", event: newEvent });
 });
 
 app.delete('/api/events/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
+
     console.log(`[DELETE Event] ID: ${id}`);
     const initialLength = db.events.length;
-    db.events = db.events.filter(e => e.id !== id);
+    db.events = db.events.filter(e => Number(e.id) !== id);
 
     if (db.events.length < initialLength) {
-        db.stats.totalEvents = Math.max(0, db.stats.totalEvents - 1);
+        db.stats.totalEvents = Math.max(0, (db.stats.totalEvents || 1) - 1);
         writeDB(db);
         res.json({ success: true, message: "Event Deleted Successfully" });
     } else {
@@ -103,11 +117,20 @@ app.delete('/api/events/:id', (req, res) => {
 app.put('/api/events/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
+
     console.log(`[UPDATE Event] ID: ${id}`);
-    const index = db.events.findIndex(e => e.id === id);
+    const index = db.events.findIndex(e => Number(e.id) === id);
 
     if (index !== -1) {
-        db.events[index] = { ...db.events[index], ...req.body };
+        const { name, date, location, budget } = req.body;
+        db.events[index] = {
+            ...db.events[index],
+            name: name ? String(name) : db.events[index].name,
+            date: date ? String(date) : db.events[index].date,
+            location: location ? String(location) : db.events[index].location,
+            budget: budget !== undefined ? Number(budget) : db.events[index].budget
+        };
         writeDB(db);
         res.json({ success: true, message: "Event Updated Successfully", event: db.events[index] });
     } else {
@@ -118,14 +141,24 @@ app.put('/api/events/:id', (req, res) => {
 // -- VENDORS --
 app.get('/api/vendors', (req, res) => {
     const db = readDB();
-    res.json(db.vendors);
+    res.json(db.vendors || []);
 });
 
 app.post('/api/vendors', (req, res) => {
+    const { name, category, contact } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: "Vendor name is required" });
+
     const db = readDB();
-    const newVendor = { id: Date.now(), ...req.body, status: 'Active', rating: 5.0 };
+    const newVendor = {
+        id: Date.now(),
+        name: String(name),
+        category: String(category || 'General'),
+        contact: String(contact || 'N/A'),
+        status: 'Active',
+        rating: 5.0
+    };
     db.vendors.push(newVendor);
-    db.stats.activeVendors += 1;
+    db.stats.activeVendors = (db.stats.activeVendors || 0) + 1;
     writeDB(db);
     res.json({ success: true, message: "Vendor Added Successfully", vendor: newVendor });
 });
@@ -133,12 +166,20 @@ app.post('/api/vendors', (req, res) => {
 // -- TASKS --
 app.get('/api/tasks', (req, res) => {
     const db = readDB();
-    res.json(db.tasks);
+    res.json(db.tasks || []);
 });
 
 app.post('/api/tasks', (req, res) => {
+    const { description } = req.body;
+    if (!description) return res.status(400).json({ success: false, message: "Task description is required" });
+
     const db = readDB();
-    const newTask = { id: Date.now(), ...req.body, status: 'Pending' };
+    const newTask = {
+        id: Date.now(),
+        ...req.body,
+        description: String(description),
+        status: 'Pending'
+    };
     db.tasks.push(newTask);
     writeDB(db);
     res.json({ success: true, message: "Task Added Successfully", task: newTask });
@@ -147,8 +188,10 @@ app.post('/api/tasks', (req, res) => {
 app.put('/api/vendors/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
+
     console.log(`[UPDATE Vendor] ID: ${id}`);
-    const index = db.vendors.findIndex(v => v.id === id);
+    const index = db.vendors.findIndex(v => Number(v.id) === id);
 
     if (index !== -1) {
         db.vendors[index] = { ...db.vendors[index], ...req.body };
@@ -162,8 +205,10 @@ app.put('/api/vendors/:id', (req, res) => {
 app.put('/api/tasks/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
+
     console.log(`[UPDATE Task] ID: ${id}`);
-    const index = db.tasks.findIndex(t => t.id === id);
+    const index = db.tasks.findIndex(t => Number(t.id) === id);
 
     if (index !== -1) {
         db.tasks[index] = { ...db.tasks[index], ...req.body };

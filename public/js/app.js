@@ -40,9 +40,15 @@ function checkAuth() {
     if (!user) {
         window.location.href = 'login.html';
     } else {
-        const u = JSON.parse(user);
-        const nameEl = document.getElementById('userName');
-        if (nameEl) nameEl.textContent = u.name;
+        try {
+            const u = JSON.parse(user);
+            const nameEl = document.getElementById('userName');
+            if (nameEl) nameEl.textContent = u.name || 'Admin';
+        } catch (e) {
+            console.error("Auth session corrupted:", e);
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
     }
 }
 
@@ -318,15 +324,15 @@ function updateStat(id, value) {
 
 function renderEventsTable(events) {
     const tbody = document.getElementById('events-table-body');
-    if (!tbody) return;
+    if (!tbody || !events) return;
     tbody.innerHTML = events.map(e => `
         <tr>
-            <td>#${e.id}</td>
-            <td>${e.name}</td>
-            <td>${e.date}</td>
-            <td>${e.location}</td>
-            <td>${e.budget.toLocaleString()} CFA</td>
-            <td><span class="badge ${e.status.toLowerCase()}">${e.status}</span></td>
+            <td>#${e.id || 'N/A'}</td>
+            <td>${e.name || 'Unnamed Event'}</td>
+            <td>${e.date || 'TBD'}</td>
+            <td>${e.location || 'No Location'}</td>
+            <td>${(Number(e.budget) || 0).toLocaleString()} CFA</td>
+            <td><span class="badge ${(e.status || 'Planning').toLowerCase()}">${e.status || 'Planning'}</span></td>
             <td>
                 <button class="btn-primary" style="padding: 5px 10px; background: #f39c12;" onclick="openEditModal(${e.id})"><i class="fas fa-edit"></i></button>
                 <button class="btn-primary" style="padding: 5px 10px; background: #e74c3c;" onclick="deleteEvent(${e.id})"><i class="fas fa-trash"></i></button>
@@ -336,17 +342,17 @@ function renderEventsTable(events) {
 }
 
 function renderVendorsTable(vendors) {
-    currentVendors = vendors; // Store for edit
+    currentVendors = vendors || [];
     const tbody = document.getElementById('vendors-table-body');
-    if (!tbody) return;
+    if (!tbody || !vendors) return;
     tbody.innerHTML = vendors.map(v => `
         <tr>
-            <td>#${v.id}</td>
-            <td>${v.name}</td>
-            <td>${v.category}</td>
-            <td>⭐ ${v.rating}</td>
-            <td>${v.contact}</td>
-            <td><span class="badge">${v.status}</span></td>
+            <td>#${v.id || 'N/A'}</td>
+            <td>${v.name || 'Unnamed Vendor'}</td>
+            <td>${v.category || 'General'}</td>
+            <td>⭐ ${v.rating || '5.0'}</td>
+            <td>${v.contact || 'No Contact'}</td>
+            <td><span class="badge">${v.status || 'Active'}</span></td>
             <td>
                 <button class="btn-primary" style="padding: 5px 10px; background: #f39c12;" onclick="openEditVendorModal(${v.id})"><i class="fas fa-edit"></i></button>
                 <button class="btn-primary" style="padding: 5px 10px; background: #e74c3c;" onclick="deleteVendor(${v.id})"><i class="fas fa-trash"></i></button>
