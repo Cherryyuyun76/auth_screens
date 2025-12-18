@@ -14,24 +14,50 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve frontend files
 
-// Helper to read DB
+// Helper to ensure data directory exists
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Default DB Structure
+const DEFAULT_DB = {
+    users: [
+        { id: 1, name: "Admin", email: "admin@eventflow.com", password: "password123", role: "admin" }
+    ],
+    events: [], vendors: [], tasks: [],
+    stats: { totalEvents: 0, totalAttendees: 0, totalRevenue: 0, activeVendors: 0 }
+};
+
+// Helper to read DB (with Auto-Repair)
 const readDB = () => {
     try {
+        if (!fs.existsSync(DB_FILE)) {
+            console.log("Database file missing. Initializing with defaults...");
+            writeDB(DEFAULT_DB);
+            return DEFAULT_DB;
+        }
         const data = fs.readFileSync(DB_FILE, 'utf8');
         return JSON.parse(data);
     } catch (err) {
-        console.error("Database read error:", err);
-        return { users: [], events: [], vendors: [], tasks: [], stats: {} };
+        console.error("Database corrupted! Auto-repairing with defaults...", err);
+        // If corrupted, we return a safe object to prevent app crash
+        return DEFAULT_DB;
     }
 };
 
-// Helper to write DB
+// Helper to write DB (Atomic Write to prevent corruption)
 const writeDB = (data) => {
+    const TEMP_FILE = DB_FILE + '.tmp';
     try {
-        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+        // 1. Write to a temporary file first
+        fs.writeFileSync(TEMP_FILE, JSON.stringify(data, null, 2));
+        // 2. Rename the temp file to the real file (Atomic operation in OS)
+        fs.renameSync(TEMP_FILE, DB_FILE);
         return true;
     } catch (err) {
         console.error("Database write error:", err);
+        if (fs.existsSync(TEMP_FILE)) fs.unlinkSync(TEMP_FILE); // Cleanup
         return false;
     }
 };
