@@ -14,12 +14,19 @@
     --danger: #EF4444;
 }
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background-color: var(--bg-main);
     color: var(--text-primary);
 }
+
 
 /* --- AUTH STYLES (Adjusted) --- */
 .auth-wrapper {
@@ -273,6 +280,7 @@ button:hover {
     padding: 0 50px;
     text-align: center;
     top: 0;
+    left: 0;
     height: 100%;
     width: 50%;
     transform: translateX(0);

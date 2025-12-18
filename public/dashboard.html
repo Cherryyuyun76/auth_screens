@@ -189,6 +189,36 @@
             </div>
         </div>
 
+        <!-- Edit Vendor Modal -->
+        <div id="editVendorModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editVendorModal')">&times;</span>
+                <h2>Edit Vendor</h2>
+                <form id="editVendorForm" onsubmit="return false;">
+                    <input type="hidden" id="editVendorId">
+                    <input type="text" id="editVendorName" placeholder="Vendor Name" required>
+                    <input type="text" id="editVendorCategory" placeholder="Category" required>
+                    <input type="email" id="editVendorContact" placeholder="Contact Email" required>
+                    <button type="button" onclick="handleUpdateVendor()">Update Vendor</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editTaskModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editTaskModal')">&times;</span>
+                <h2>Edit Task</h2>
+                <form id="editTaskForm" onsubmit="return false;">
+                    <input type="hidden" id="editTaskId">
+                    <input type="text" id="editTaskDesc" placeholder="Task Description" required>
+                    <input type="text" id="editTaskAssign" placeholder="Assigned To" required>
+                    <input type="date" id="editTaskDeadline" required>
+                    <button type="button" onclick="handleUpdateTask()">Update Task</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Add Vendor Modal -->
         <div id="vendorModal" class="modal">
             <div class="modal-content">

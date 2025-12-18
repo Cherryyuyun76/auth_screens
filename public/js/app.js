@@ -228,29 +228,105 @@ async function handleUpdateEvent() {
 
 
 async function deleteVendor(id) {
+    console.log("Attempting to delete vendor:", id);
     if (!confirm('Are you sure you want to delete this vendor?')) return;
     try {
         const res = await fetch(`${API_URL}/vendors/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        console.log("Delete vendor response:", data);
         if (res.ok) {
             showToast('Vendor Deleted', true);
             loadDashboardData();
         } else {
-            showToast('Failed to delete vendor');
+            showToast('Failed to delete vendor: ' + (data.message || 'Unknown error'));
         }
-    } catch (e) { console.error(e); showToast('Error deleting vendor'); }
+    } catch (e) {
+        console.error("Delete vendor error:", e);
+        showToast('Error deleting vendor');
+    }
 }
 
 async function deleteTask(id) {
+    console.log("Attempting to delete task:", id);
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
         const res = await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        console.log("Delete task response:", data);
         if (res.ok) {
             showToast('Task Deleted', true);
             loadDashboardData();
         } else {
-            showToast('Failed to delete task');
+            showToast('Failed to delete task: ' + (data.message || 'Unknown error'));
         }
-    } catch (e) { console.error(e); showToast('Error deleting task'); }
+    } catch (e) {
+        console.error("Delete task error:", e);
+        showToast('Error deleting task');
+    }
+}
+
+// --- UPDATE MODAL LOGIC ---
+let currentVendors = [];
+let currentTasks = [];
+
+function openEditVendorModal(id) {
+    const v = currentVendors.find(vendor => vendor.id === id);
+    if (!v) return;
+    document.getElementById('editVendorId').value = v.id;
+    document.getElementById('editVendorName').value = v.name;
+    document.getElementById('editVendorCategory').value = v.category;
+    document.getElementById('editVendorContact').value = v.contact;
+    openModal('editVendorModal');
+}
+
+async function handleUpdateVendor() {
+    const id = document.getElementById('editVendorId').value;
+    const name = document.getElementById('editVendorName').value;
+    const category = document.getElementById('editVendorCategory').value;
+    const contact = document.getElementById('editVendorContact').value;
+
+    try {
+        const res = await fetch(`${API_URL}/vendors/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, category, contact })
+        });
+        if (res.ok) {
+            showToast('Vendor Updated!', true);
+            closeModal('editVendorModal');
+            loadDashboardData();
+        }
+    } catch (e) { showToast('Error updating vendor'); }
+}
+
+function openEditTaskModal(id) {
+    const t = currentTasks.find(task => task.id === id);
+    if (!t) return;
+    document.getElementById('editTaskId').value = t.id;
+    document.getElementById('editTaskDesc').value = t.description;
+    document.getElementById('editTaskAssign').value = t.assignedTo;
+    document.getElementById('editTaskDeadline').value = t.deadline;
+    openModal('editTaskModal');
+}
+
+async function handleUpdateTask() {
+    const id = document.getElementById('editTaskId').value;
+    const description = document.getElementById('editTaskDesc').value;
+    const assignedTo = document.getElementById('editTaskAssign').value;
+    const deadline = document.getElementById('editTaskDeadline').value;
+
+    try {
+        const res = await fetch(`${API_URL}/tasks/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description, assignedTo, deadline })
+        });
+        if (res.ok) {
+            showToast('Task Updated!', true);
+            closeModal('editTaskModal');
+            loadDashboardData();
+        }
+    } catch (e) { showToast('Error updating task'); }
 }
 
 function updateStat(id, value) {
@@ -278,6 +354,7 @@ function renderEventsTable(events) {
 }
 
 function renderVendorsTable(vendors) {
+    currentVendors = vendors; // Store for edit
     const tbody = document.getElementById('vendors-table-body');
     if (!tbody) return;
     tbody.innerHTML = vendors.map(v => `
@@ -289,6 +366,7 @@ function renderVendorsTable(vendors) {
             <td>${v.contact}</td>
             <td><span class="badge">${v.status}</span></td>
             <td>
+                <button class="btn-primary" style="padding: 5px 10px; background: #f39c12;" onclick="openEditVendorModal(${v.id})"><i class="fas fa-edit"></i></button>
                 <button class="btn-primary" style="padding: 5px 10px; background: #e74c3c;" onclick="deleteVendor(${v.id})"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
@@ -323,6 +401,7 @@ function switchTab(tabName) {
 }
 
 function renderTasksTable(tasks) {
+    currentTasks = tasks; // Store for edit
     const tbody = document.getElementById('tasks-table-body');
     if (!tbody) return;
     tbody.innerHTML = tasks.map(t => `
@@ -331,6 +410,10 @@ function renderTasksTable(tasks) {
             <td>${t.assignedTo || 'Unassigned'}</td>
             <td>${t.deadline}</td>
             <td><span class="badge">${t.status}</span></td>
+            <td>
+                <button class="btn-primary" style="padding: 5px 10px; background: #f39c12;" onclick="openEditTaskModal(${t.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn-primary" style="padding: 5px 10px; background: #e74c3c;" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
+            </td>
         </tr>
     `).join('');
 }

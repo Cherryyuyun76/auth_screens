@@ -142,6 +142,34 @@ app.post('/api/tasks', (req, res) => {
     res.json({ success: true, task: newTask });
 });
 
+app.put('/api/vendors/:id', (req, res) => {
+    const db = readDB();
+    const id = Number(req.params.id);
+    const index = db.vendors.findIndex(v => v.id === id);
+
+    if (index !== -1) {
+        db.vendors[index] = { ...db.vendors[index], ...req.body };
+        writeDB(db);
+        res.json({ success: true, vendor: db.vendors[index] });
+    } else {
+        res.status(404).json({ success: false, message: "Vendor not found" });
+    }
+});
+
+app.put('/api/tasks/:id', (req, res) => {
+    const db = readDB();
+    const id = Number(req.params.id);
+    const index = db.tasks.findIndex(t => t.id === id);
+
+    if (index !== -1) {
+        db.tasks[index] = { ...db.tasks[index], ...req.body };
+        writeDB(db);
+        res.json({ success: true, task: db.tasks[index] });
+    } else {
+        res.status(404).json({ success: false, message: "Task not found" });
+    }
+});
+
 app.delete('/api/vendors/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
