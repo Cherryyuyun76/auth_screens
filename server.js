@@ -80,8 +80,37 @@ app.post('/api/events', (req, res) => {
     const newEvent = { id: Date.now(), ...req.body, status: 'Planning' };
     db.events.push(newEvent);
     db.stats.totalEvents += 1; // Update stats
-    writeDB(db);
     res.json({ success: true, event: newEvent });
+});
+
+app.delete('/api/events/:id', (req, res) => {
+    const db = readDB();
+    const id = Number(req.params.id);
+    const initialLength = db.events.length;
+    db.events = db.events.filter(e => e.id !== id);
+
+    if (db.events.length < initialLength) {
+        db.stats.totalEvents = Math.max(0, db.stats.totalEvents - 1);
+        writeDB(db);
+        res.json({ success: true, message: "Event deleted" });
+    } else {
+        res.status(404).json({ success: false, message: "Event not found" });
+    }
+});
+
+app.put('/api/events/:id', (req, res) => {
+    const db = readDB();
+    const id = Number(req.params.id);
+    const index = db.events.findIndex(e => e.id === id);
+
+    if (index !== -1) {
+        // Merge existing event with updates
+        db.events[index] = { ...db.events[index], ...req.body };
+        writeDB(db);
+        res.json({ success: true, event: db.events[index] });
+    } else {
+        res.status(404).json({ success: false, message: "Event not found" });
+    }
 });
 
 // -- VENDORS --

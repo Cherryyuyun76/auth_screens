@@ -171,6 +171,22 @@
             </div>
         </div>
 
+        <!-- Edit Event Modal -->
+        <div id="editEventModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editEventModal')">&times;</span>
+                <h2>Edit Event</h2>
+                <form id="editEventForm" onsubmit="return false;">
+                    <input type="hidden" id="editEventId">
+                    <input type="text" id="editEventName" placeholder="Event Name" required>
+                    <input type="date" id="editEventDate" required>
+                    <input type="text" id="editEventLocation" placeholder="Location" required>
+                    <input type="number" id="editEventBudget" placeholder="Budget" required>
+                    <button type="button" onclick="handleUpdateEvent()">Update Event</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Add Vendor Modal -->
         <div id="vendorModal" class="modal">
             <div class="modal-content">

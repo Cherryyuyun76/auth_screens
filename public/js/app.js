@@ -63,6 +63,7 @@ async function loadDashboardData() {
         // Fetch Events for Table
         const eventsRes = await fetch(`${API_URL}/events?t=${Date.now()}`);
         const events = await eventsRes.json();
+        currentEvents = events; // Store for edit modal
         renderEventsTable(events);
 
         // Fetch Vendors for Table
@@ -140,6 +141,8 @@ async function handleAddVendor() {
     } catch (e) { showToast('Error adding vendor'); }
 }
 
+let currentEvents = []; // Store events locally to populate edit modal
+
 async function handleAddTask() {
     const description = document.getElementById('taskDesc').value;
     const assignedTo = document.getElementById('taskAssign').value;
@@ -158,8 +161,70 @@ async function handleAddTask() {
             closeModal('taskModal');
             loadDashboardData(); // Refresh
         }
-    } catch (e) { showToast('Error adding task'); }
+    } catch (e) {
+        console.error("Error adding task:", e);
+        showToast('Error adding task');
+    }
 }
+
+async function deleteEvent(id) {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+        const res = await fetch(`${API_URL}/events/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Event Deleted', true);
+            loadDashboardData();
+        } else {
+            showToast('Failed to delete event');
+        }
+    } catch (e) {
+        console.error("Error deleting event:", e);
+        showToast('Error deleting event');
+    }
+}
+
+function openEditModal(id) {
+    const event = currentEvents.find(e => e.id === id);
+    if (!event) return;
+
+    document.getElementById('editEventId').value = event.id;
+    document.getElementById('editEventName').value = event.name;
+    document.getElementById('editEventDate').value = event.date;
+    document.getElementById('editEventLocation').value = event.location;
+    document.getElementById('editEventBudget').value = event.budget;
+
+    openModal('editEventModal');
+}
+
+async function handleUpdateEvent() {
+    const id = document.getElementById('editEventId').value;
+    const name = document.getElementById('editEventName').value;
+    const date = document.getElementById('editEventDate').value;
+    const location = document.getElementById('editEventLocation').value;
+    const budget = document.getElementById('editEventBudget').value;
+
+    if (!name || !date || !location) return showToast('All fields required');
+
+    try {
+        const res = await fetch(`${API_URL}/events/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, date, location, budget: Number(budget) })
+        });
+
+        if (res.ok) {
+            showToast('Event Updated!', true);
+            closeModal('editEventModal');
+            loadDashboardData();
+        } else {
+            showToast('Update failed');
+        }
+    } catch (e) {
+        console.error("Error updating event:", e);
+        showToast('Error updating event');
+    }
+}
+
 
 
 function updateStat(id, value) {
@@ -178,6 +243,10 @@ function renderEventsTable(events) {
             <td>${e.location}</td>
             <td>${e.budget.toLocaleString()} CFA</td>
             <td><span class="badge ${e.status.toLowerCase()}">${e.status}</span></td>
+            <td>
+                <button class="btn-primary" style="padding: 5px 10px; background: #f39c12;" onclick="openEditModal(${e.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn-primary" style="padding: 5px 10px; background: #e74c3c;" onclick="deleteEvent(${e.id})"><i class="fas fa-trash"></i></button>
+            </td>
         </tr>
     `).join('');
 }
