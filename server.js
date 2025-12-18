@@ -79,20 +79,22 @@ app.post('/api/events', (req, res) => {
     const db = readDB();
     const newEvent = { id: Date.now(), ...req.body, status: 'Planning' };
     db.events.push(newEvent);
-    db.stats.totalEvents += 1; // Update stats
+    db.stats.totalEvents += 1;
+    writeDB(db); // FIXED: Added missing writeDB
     res.json({ success: true, event: newEvent });
 });
 
 app.delete('/api/events/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    console.log(`[DELETE Event] ID: ${id}`);
     const initialLength = db.events.length;
     db.events = db.events.filter(e => e.id !== id);
 
     if (db.events.length < initialLength) {
         db.stats.totalEvents = Math.max(0, db.stats.totalEvents - 1);
         writeDB(db);
-        res.json({ success: true, message: "Event deleted" });
+        res.json({ success: true, message: "Event Deleted Successfully" });
     } else {
         res.status(404).json({ success: false, message: "Event not found" });
     }
@@ -101,13 +103,13 @@ app.delete('/api/events/:id', (req, res) => {
 app.put('/api/events/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    console.log(`[UPDATE Event] ID: ${id}`);
     const index = db.events.findIndex(e => e.id === id);
 
     if (index !== -1) {
-        // Merge existing event with updates
         db.events[index] = { ...db.events[index], ...req.body };
         writeDB(db);
-        res.json({ success: true, event: db.events[index] });
+        res.json({ success: true, message: "Event Updated Successfully", event: db.events[index] });
     } else {
         res.status(404).json({ success: false, message: "Event not found" });
     }
@@ -125,7 +127,7 @@ app.post('/api/vendors', (req, res) => {
     db.vendors.push(newVendor);
     db.stats.activeVendors += 1;
     writeDB(db);
-    res.json({ success: true, vendor: newVendor });
+    res.json({ success: true, message: "Vendor Added Successfully", vendor: newVendor });
 });
 
 // -- TASKS --
@@ -139,18 +141,19 @@ app.post('/api/tasks', (req, res) => {
     const newTask = { id: Date.now(), ...req.body, status: 'Pending' };
     db.tasks.push(newTask);
     writeDB(db);
-    res.json({ success: true, task: newTask });
+    res.json({ success: true, message: "Task Added Successfully", task: newTask });
 });
 
 app.put('/api/vendors/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    console.log(`[UPDATE Vendor] ID: ${id}`);
     const index = db.vendors.findIndex(v => v.id === id);
 
     if (index !== -1) {
         db.vendors[index] = { ...db.vendors[index], ...req.body };
         writeDB(db);
-        res.json({ success: true, vendor: db.vendors[index] });
+        res.json({ success: true, message: "Vendor Updated Successfully", vendor: db.vendors[index] });
     } else {
         res.status(404).json({ success: false, message: "Vendor not found" });
     }
@@ -159,12 +162,13 @@ app.put('/api/vendors/:id', (req, res) => {
 app.put('/api/tasks/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    console.log(`[UPDATE Task] ID: ${id}`);
     const index = db.tasks.findIndex(t => t.id === id);
 
     if (index !== -1) {
         db.tasks[index] = { ...db.tasks[index], ...req.body };
         writeDB(db);
-        res.json({ success: true, task: db.tasks[index] });
+        res.json({ success: true, message: "Task Updated Successfully", task: db.tasks[index] });
     } else {
         res.status(404).json({ success: false, message: "Task not found" });
     }
@@ -173,13 +177,14 @@ app.put('/api/tasks/:id', (req, res) => {
 app.delete('/api/vendors/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    console.log(`[DELETE Vendor] ID: ${id}`);
     const initialLength = db.vendors.length;
     db.vendors = db.vendors.filter(v => v.id !== id);
 
     if (db.vendors.length < initialLength) {
         db.stats.activeVendors = Math.max(0, db.stats.activeVendors - 1);
         writeDB(db);
-        res.json({ success: true, message: "Vendor deleted" });
+        res.json({ success: true, message: "Vendor Deleted Successfully" });
     } else {
         res.status(404).json({ success: false, message: "Vendor not found" });
     }
@@ -188,12 +193,13 @@ app.delete('/api/vendors/:id', (req, res) => {
 app.delete('/api/tasks/:id', (req, res) => {
     const db = readDB();
     const id = Number(req.params.id);
+    console.log(`[DELETE Task] ID: ${id}`);
     const initialLength = db.tasks.length;
     db.tasks = db.tasks.filter(t => t.id !== id);
 
     if (db.tasks.length < initialLength) {
         writeDB(db);
-        res.json({ success: true, message: "Task deleted" });
+        res.json({ success: true, message: "Task Deleted Successfully" });
     } else {
         res.status(404).json({ success: false, message: "Task not found" });
     }
@@ -207,5 +213,5 @@ app.use((err, req, res, next) => {
 
 // Start Server
 app.listen(PORT, () => {
-    console.log(`EventFlow MIS Server running on http://localhost:${PORT}`);
+    console.log(`EventFlow MIS Server running on port ${PORT}`);
 });

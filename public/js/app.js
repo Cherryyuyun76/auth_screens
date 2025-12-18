@@ -90,33 +90,25 @@ async function handleAddEvent() {
     const date = document.getElementById('eventDate').value;
     const location = document.getElementById('eventLocation').value;
     const budget = document.getElementById('eventBudget').value;
-    console.log("Add Event Clicked. Inputs:", { name, date, location, budget });
 
     if (!name || !date || !location) return showToast('All fields required');
 
-    // VALIDATION: No numbers in Location - REMOVED for realism
-    // if (/\d/.test(location)) {
-    //    return showToast('Location cannot contain numbers!');
-    // }
-
     try {
-        const res = await fetch(`${API_URL}/events`, {
+        const res = await fetch(`${API_URL}/events?t=${Date.now()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, date, location, budget: Number(budget) })
         });
+        const data = await res.json();
         if (res.ok) {
             showToast('Event Added Successfully!', true);
             closeModal('eventModal');
-            loadDashboardData(); // Refresh
+            await loadDashboardData();
         } else {
-            const errData = await res.json();
-            console.error("Add Event Failed:", errData);
-            showToast('Failed: ' + errData.message);
+            showToast('Failed: ' + (data.message || 'Server error'));
         }
     } catch (e) {
-        console.error("Add Event Exception:", e);
-        showToast('Error adding event');
+        showToast('Error connecting to server');
     }
 }
 
@@ -128,15 +120,18 @@ async function handleAddVendor() {
     if (!name) return showToast('Name required');
 
     try {
-        const res = await fetch(`${API_URL}/vendors`, {
+        const res = await fetch(`${API_URL}/vendors?t=${Date.now()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, category, contact })
         });
+        const data = await res.json();
         if (res.ok) {
-            showToast('Vendor Added!', true);
+            showToast('Vendor Added Successfully!', true);
             closeModal('vendorModal');
-            loadDashboardData(); // Refresh
+            await loadDashboardData();
+        } else {
+            showToast('Failed: ' + (data.message || 'Server error'));
         }
     } catch (e) { showToast('Error adding vendor'); }
 }
@@ -151,48 +146,44 @@ async function handleAddTask() {
     if (!description) return showToast('Description required');
 
     try {
-        const res = await fetch(`${API_URL}/tasks`, {
+        const res = await fetch(`${API_URL}/tasks?t=${Date.now()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ description, assignedTo, deadline })
         });
+        const data = await res.json();
         if (res.ok) {
-            showToast('Task Added!', true);
+            showToast('Task Added Successfully!', true);
             closeModal('taskModal');
-            loadDashboardData(); // Refresh
+            await loadDashboardData();
+        } else {
+            showToast('Failed: ' + (data.message || 'Server error'));
         }
-    } catch (e) {
-        console.error("Error adding task:", e);
-        showToast('Error adding task');
-    }
+    } catch (e) { showToast('Error adding task'); }
 }
 
 async function deleteEvent(id) {
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
-        const res = await fetch(`${API_URL}/events/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_URL}/events/${id}?t=${Date.now()}`, { method: 'DELETE' });
+        const data = await res.json();
         if (res.ok) {
-            showToast('Event Deleted', true);
-            loadDashboardData();
+            showToast('Event Deleted Successfully!', true);
+            await loadDashboardData();
         } else {
-            showToast('Failed to delete event');
+            showToast('Delete Failed: ' + (data.message || 'Error'));
         }
-    } catch (e) {
-        console.error("Error deleting event:", e);
-        showToast('Error deleting event');
-    }
+    } catch (e) { showToast('Error deleting event'); }
 }
 
 function openEditModal(id) {
     const event = currentEvents.find(e => e.id === id);
     if (!event) return;
-
     document.getElementById('editEventId').value = event.id;
     document.getElementById('editEventName').value = event.name;
     document.getElementById('editEventDate').value = event.date;
     document.getElementById('editEventLocation').value = event.location;
     document.getElementById('editEventBudget').value = event.budget;
-
     openModal('editEventModal');
 }
 
@@ -206,63 +197,48 @@ async function handleUpdateEvent() {
     if (!name || !date || !location) return showToast('All fields required');
 
     try {
-        const res = await fetch(`${API_URL}/events/${id}`, {
+        const res = await fetch(`${API_URL}/events/${id}?t=${Date.now()}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, date, location, budget: Number(budget) })
         });
-
+        const data = await res.json();
         if (res.ok) {
-            showToast('Event Updated!', true);
+            showToast('Event Updated Successfully!', true);
             closeModal('editEventModal');
-            loadDashboardData();
+            await loadDashboardData();
         } else {
-            showToast('Update failed');
+            showToast('Update Failed: ' + (data.message || 'Error'));
         }
-    } catch (e) {
-        console.error("Error updating event:", e);
-        showToast('Error updating event');
-    }
+    } catch (e) { showToast('Error updating event'); }
 }
 
-
-
 async function deleteVendor(id) {
-    console.log("Attempting to delete vendor:", id);
     if (!confirm('Are you sure you want to delete this vendor?')) return;
     try {
-        const res = await fetch(`${API_URL}/vendors/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_URL}/vendors/${id}?t=${Date.now()}`, { method: 'DELETE' });
         const data = await res.json();
-        console.log("Delete vendor response:", data);
         if (res.ok) {
-            showToast('Vendor Deleted', true);
-            loadDashboardData();
+            showToast('Vendor Deleted Successfully!', true);
+            await loadDashboardData();
         } else {
-            showToast('Failed to delete vendor: ' + (data.message || 'Unknown error'));
+            showToast('Delete Failed: ' + (data.message || 'Error'));
         }
-    } catch (e) {
-        console.error("Delete vendor error:", e);
-        showToast('Error deleting vendor');
-    }
+    } catch (e) { showToast('Error deleting vendor'); }
 }
 
 async function deleteTask(id) {
-    console.log("Attempting to delete task:", id);
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
-        const res = await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_URL}/tasks/${id}?t=${Date.now()}`, { method: 'DELETE' });
         const data = await res.json();
-        console.log("Delete task response:", data);
         if (res.ok) {
-            showToast('Task Deleted', true);
-            loadDashboardData();
+            showToast('Task Deleted Successfully!', true);
+            await loadDashboardData();
         } else {
-            showToast('Failed to delete task: ' + (data.message || 'Unknown error'));
+            showToast('Delete Failed: ' + (data.message || 'Error'));
         }
-    } catch (e) {
-        console.error("Delete task error:", e);
-        showToast('Error deleting task');
-    }
+    } catch (e) { showToast('Error deleting task'); }
 }
 
 // --- UPDATE MODAL LOGIC ---
@@ -286,15 +262,18 @@ async function handleUpdateVendor() {
     const contact = document.getElementById('editVendorContact').value;
 
     try {
-        const res = await fetch(`${API_URL}/vendors/${id}`, {
+        const res = await fetch(`${API_URL}/vendors/${id}?t=${Date.now()}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, category, contact })
         });
+        const data = await res.json();
         if (res.ok) {
-            showToast('Vendor Updated!', true);
+            showToast('Vendor Updated Successfully!', true);
             closeModal('editVendorModal');
-            loadDashboardData();
+            await loadDashboardData();
+        } else {
+            showToast('Update Failed: ' + (data.message || 'Error'));
         }
     } catch (e) { showToast('Error updating vendor'); }
 }
@@ -316,15 +295,18 @@ async function handleUpdateTask() {
     const deadline = document.getElementById('editTaskDeadline').value;
 
     try {
-        const res = await fetch(`${API_URL}/tasks/${id}`, {
+        const res = await fetch(`${API_URL}/tasks/${id}?t=${Date.now()}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ description, assignedTo, deadline })
         });
+        const data = await res.json();
         if (res.ok) {
-            showToast('Task Updated!', true);
+            showToast('Task Updated Successfully!', true);
             closeModal('editTaskModal');
-            loadDashboardData();
+            await loadDashboardData();
+        } else {
+            showToast('Update Failed: ' + (data.message || 'Error'));
         }
     } catch (e) { showToast('Error updating task'); }
 }
