@@ -331,7 +331,7 @@ function initCharts(stats, events) {
                 labels: ['Allocated Budget', 'Spent', 'Remaining'],
                 datasets: [{
                     data: [150000, 45000, 105000],
-                    backgroundColor: ['#667eea', '#764ba2', '#e0e0e0']
+                    backgroundColor: ['#3f51b5', '#009688', '#e2e8f0']
                 }]
             },
             options: { responsive: true }
@@ -346,11 +346,22 @@ function initCharts(stats, events) {
                 datasets: [{
                     label: 'Registrations',
                     data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: '#667eea',
+                    backgroundColor: '#3f51b5',
                     borderRadius: 5
                 }]
             },
-            options: { scales: { y: { beginAtZero: true } } }
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
         });
     }
 }

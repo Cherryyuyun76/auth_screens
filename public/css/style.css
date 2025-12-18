@@ -1,80 +1,83 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+:root {
+    --primary: #3f51b5;
+    --primary-dark: #303f9f;
+    --accent: #009688;
+    --bg-main: #f8fafc;
+    --text-main: #1e293b;
+    --text-light: #64748b;
+    --border-color: #e2e8f0;
+    --white: #ffffff;
+    --success: #43a047;
+    --warning: #ffa000;
+    --danger: #d32f2f;
 }
 
 body {
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: var(--bg-main);
+    color: var(--text-main);
 }
 
-/* --- AUTH STYLES (Preserved & Adjusted) --- */
-/* (Keeping core auth styles but scoped slightly closer to body if needed, 
-    but for now just keeping them as global as they were) */
-
+/* --- AUTH STYLES (Adjusted) --- */
 .auth-wrapper {
-    background-color: #fff;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
     width: 850px;
     max-width: 90%;
     min-height: 550px;
     margin: 50px auto;
-    /* Centered */
+    border: 1px solid var(--border-color);
 }
 
 /* Inputs & Buttons (Shared) */
 input {
-    background-color: #f3f4f6;
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 14px 18px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
     margin: 8px 0;
     width: 100%;
     font-size: 14px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 input:focus {
     outline: none;
-    border-color: #667eea;
-    background-color: #fff;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.1);
 }
 
 button {
-    border-radius: 25px;
+    border-radius: 8px;
     border: none;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #FFFFFF;
-    font-size: 13px;
+    background: var(--primary);
+    color: var(--white);
+    font-size: 14px;
     font-weight: 600;
-    padding: 14px 50px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: all 0.3s ease;
+    padding: 12px 30px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 2px 4px rgba(63, 81, 181, 0.2);
     margin-top: 10px;
 }
 
 button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(63, 81, 181, 0.3);
 }
 
 .transparent-btn {
     background: transparent;
-    border: 2px solid #FFFFFF;
+    border: 1px solid var(--white);
     box-shadow: none;
-    margin-top: 10px;
 }
 
 .transparent-btn:hover {
@@ -323,20 +326,21 @@ button:hover {
 
 .sidebar {
     width: 260px;
-    background: #fff;
+    background: var(--white);
     height: 100vh;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
     position: fixed;
     left: 0;
     top: 0;
     z-index: 1000;
+    border-right: 1px solid var(--border-color);
 }
 
 .sidebar .logo {
     padding: 30px;
     font-size: 24px;
     font-weight: 700;
-    color: #667eea;
+    color: var(--primary);
 }
 
 .sidebar ul {
@@ -363,9 +367,9 @@ button:hover {
 
 .sidebar ul li:hover,
 .sidebar ul li.active {
-    background: linear-gradient(90deg, #f3f4fd 0%, #fff 100%);
-    color: #667eea;
-    border-left: 4px solid #667eea;
+    background: #eff2ff;
+    color: var(--primary);
+    border-left: 4px solid var(--primary);
 }
 
 .sidebar ul li.logout {
@@ -432,9 +436,9 @@ button:hover {
 .icon-bg {
     width: 60px;
     height: 60px;
-    background: #eef2ff;
-    color: #667eea;
-    border-radius: 15px;
+    background: #eff2ff;
+    color: var(--primary);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -511,9 +515,10 @@ button:hover {
 
 .data-table th {
     font-weight: 600;
-    color: #888;
+    color: var(--text-light);
     font-size: 13px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .data-table tr:last-child td {
@@ -614,13 +619,13 @@ button:hover {
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: var(--white);
     margin: 10% auto;
     padding: 30px;
-    border: 1px solid #888;
+    border: 1px solid var(--border-color);
     width: 50%;
-    border-radius: 15px;
-    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
     animation: slideIn 0.4s;
 }
 
