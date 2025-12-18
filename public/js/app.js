@@ -331,7 +331,7 @@ function initCharts(stats, events) {
                 labels: ['Allocated Budget', 'Spent', 'Remaining'],
                 datasets: [{
                     data: [150000, 45000, 105000],
-                    backgroundColor: ['#3f51b5', '#009688', '#e2e8f0']
+                    backgroundColor: ['#1F2A44', '#2FA4A9', '#e5e7eb']
                 }]
             },
             options: { responsive: true }
@@ -346,7 +346,7 @@ function initCharts(stats, events) {
                 datasets: [{
                     label: 'Registrations',
                     data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: '#3f51b5',
+                    backgroundColor: '#1F2A44',
                     borderRadius: 5
                 }]
             },
