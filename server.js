@@ -142,6 +142,35 @@ app.post('/api/tasks', (req, res) => {
     res.json({ success: true, task: newTask });
 });
 
+app.delete('/api/vendors/:id', (req, res) => {
+    const db = readDB();
+    const id = Number(req.params.id);
+    const initialLength = db.vendors.length;
+    db.vendors = db.vendors.filter(v => v.id !== id);
+
+    if (db.vendors.length < initialLength) {
+        db.stats.activeVendors = Math.max(0, db.stats.activeVendors - 1);
+        writeDB(db);
+        res.json({ success: true, message: "Vendor deleted" });
+    } else {
+        res.status(404).json({ success: false, message: "Vendor not found" });
+    }
+});
+
+app.delete('/api/tasks/:id', (req, res) => {
+    const db = readDB();
+    const id = Number(req.params.id);
+    const initialLength = db.tasks.length;
+    db.tasks = db.tasks.filter(t => t.id !== id);
+
+    if (db.tasks.length < initialLength) {
+        writeDB(db);
+        res.json({ success: true, message: "Task deleted" });
+    } else {
+        res.status(404).json({ success: false, message: "Task not found" });
+    }
+});
+
 // Global Error Handler (Crash Proofing)
 app.use((err, req, res, next) => {
     console.error("Unhandled Error:", err.stack);

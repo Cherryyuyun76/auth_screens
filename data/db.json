@@ -10,55 +10,7 @@
   ],
   "events": [
     {
-      "id": 1766025582791,
-      "name": "Eating",
-      "date": "2025-12-20",
-      "location": "Musee maritime",
-      "budget": 100,
-      "status": "Planning"
-    },
-    {
-      "id": 1766025583544,
-      "name": "Eating",
-      "date": "2025-12-20",
-      "location": "Musee maritime",
-      "budget": 100,
-      "status": "Planning"
-    },
-    {
-      "id": 1766025583764,
-      "name": "Eating",
-      "date": "2025-12-20",
-      "location": "Musee maritime",
-      "budget": 100,
-      "status": "Planning"
-    },
-    {
-      "id": 1766025584412,
-      "name": "Eating",
-      "date": "2025-12-20",
-      "location": "Musee maritime",
-      "budget": 100,
-      "status": "Planning"
-    },
-    {
-      "id": 1766025584576,
-      "name": "Eating",
-      "date": "2025-12-20",
-      "location": "Musee maritime",
-      "budget": 100,
-      "status": "Planning"
-    },
-    {
       "id": 1766025587319,
-      "name": "Eating",
-      "date": "2025-12-20",
-      "location": "Musee maritime",
-      "budget": 100,
-      "status": "Planning"
-    },
-    {
-      "id": 1766027215410,
       "name": "Eating",
       "date": "2025-12-20",
       "location": "Musee maritime",
@@ -222,7 +174,7 @@
   ],
   "tasks": [],
   "stats": {
-    "totalEvents": 7,
+    "totalEvents": 1,
     "totalAttendees": 0,
     "totalRevenue": 0,
     "activeVendors": 19

@@ -227,6 +227,32 @@ async function handleUpdateEvent() {
 
 
 
+async function deleteVendor(id) {
+    if (!confirm('Are you sure you want to delete this vendor?')) return;
+    try {
+        const res = await fetch(`${API_URL}/vendors/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Vendor Deleted', true);
+            loadDashboardData();
+        } else {
+            showToast('Failed to delete vendor');
+        }
+    } catch (e) { console.error(e); showToast('Error deleting vendor'); }
+}
+
+async function deleteTask(id) {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    try {
+        const res = await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Task Deleted', true);
+            loadDashboardData();
+        } else {
+            showToast('Failed to delete task');
+        }
+    } catch (e) { console.error(e); showToast('Error deleting task'); }
+}
+
 function updateStat(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
@@ -262,6 +288,9 @@ function renderVendorsTable(vendors) {
             <td>⭐ ${v.rating}</td>
             <td>${v.contact}</td>
             <td><span class="badge">${v.status}</span></td>
+            <td>
+                <button class="btn-primary" style="padding: 5px 10px; background: #e74c3c;" onclick="deleteVendor(${v.id})"><i class="fas fa-trash"></i></button>
+            </td>
         </tr>
     `).join('');
 }
