@@ -302,7 +302,7 @@ const Dashboard = ({ user, onLogout }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                                     <StatCard icon={TrendingUp} label="Total Events" value={stats.totalEvents} color="bg-indigo-500 text-indigo-600" />
                                     <StatCard icon={UserPlus} label="Attendees" value={stats.totalAttendees} color="bg-blue-500 text-blue-600" />
-                                    <StatCard icon={DollarSign} label="Revenue" value={`${stats.totalRevenue.toLocaleString()} CFA`} color="bg-emerald-500 text-emerald-600" />
+                                    <StatCard icon={DollarSign} label="Revenue" value={`${stats.totalRevenue.toLocaleString()} FCFA`} color="bg-emerald-500 text-emerald-600" />
                                     <StatCard icon={Briefcase} label="Active Vendors" value={stats.activeVendors} color="bg-amber-500 text-amber-600" />
                                 </div>
 
@@ -334,7 +334,7 @@ const Dashboard = ({ user, onLogout }) => {
                                                         </div>
                                                         <div className="flex items-center gap-10">
                                                             <div className="hidden md:block text-right">
-                                                                <p className="text-sm font-bold text-luxury-black">{(Number(event.budget) || 0).toLocaleString()} CFA</p>
+                                                                <p className="text-sm font-bold text-luxury-black">{(Number(event.budget) || 0).toLocaleString()} FCFA</p>
                                                                 <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Budget</p>
                                                             </div>
                                                             <span className={`px-5 py-2 rounded-full text-[10px] font-black tracking-widest uppercase
@@ -418,7 +418,7 @@ const Dashboard = ({ user, onLogout }) => {
                                                         <div className="text-xs text-luxury-gold font-bold tracking-widest">{e.date}</div>
                                                     </td>
                                                     <td className="px-10 py-8 text-sm font-medium text-gray-500">{e.location}</td>
-                                                    <td className="px-10 py-8 text-right font-black text-luxury-black">{(Number(e.budget) || 0).toLocaleString()} CFA</td>
+                                                    <td className="px-10 py-8 text-right font-black text-luxury-black">{(Number(e.budget) || 0).toLocaleString()} FCFA</td>
                                                     <td className="px-10 py-8 text-center">
                                                         <span className={`px-4 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase
                                       ${e.status === 'Planning' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
@@ -553,8 +553,10 @@ const Dashboard = ({ user, onLogout }) => {
                         </div>
                         <input
                             type="number"
+                            step="any"
+                            min="0"
                             className="w-full bg-gray-50 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-luxury-gold transition-all"
-                            placeholder="Budget (CFA)"
+                            placeholder="Budget (FCFA)"
                             value={formData.budget || ''}
                             onChange={e => setFormData({ ...formData, budget: e.target.value })}
                             required
@@ -602,6 +604,16 @@ const Dashboard = ({ user, onLogout }) => {
                                 value={formData.contact_person || ''}
                                 onChange={e => setFormData({ ...formData, contact_person: e.target.value })}
                             />
+                            <select
+                                className="w-full bg-gray-50 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-luxury-gold transition-all appearance-none"
+                                value={formData.country || 'Cameroon'}
+                                onChange={e => setFormData({ ...formData, country: e.target.value })}
+                                required
+                            >
+                                {COUNTRIES.map(cty => (
+                                    <option key={cty} value={cty}>{cty}</option>
+                                ))}
+                            </select>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input
                                     type="email"
@@ -618,26 +630,10 @@ const Dashboard = ({ user, onLogout }) => {
                                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                 />
                             </div>
-                            <select
-                                className="w-full bg-gray-50 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-luxury-gold transition-all appearance-none"
-                                value={formData.country || 'Cameroon'}
-                                onChange={e => setFormData({ ...formData, country: e.target.value })}
-                                required
-                            >
-                                {COUNTRIES.map(cty => (
-                                    <option key={cty} value={cty}>{cty}</option>
-                                ))}
-                            </select>
                         </div>
 
                         <div className="space-y-4 pt-4 border-t border-gray-100">
-                            <label className="text-xs font-black uppercase tracking-widest text-luxury-gold">Online Presence</label>
-                            <input
-                                className="w-full bg-gray-50 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-luxury-gold transition-all"
-                                placeholder="Website URL"
-                                value={formData.website || ''}
-                                onChange={e => setFormData({ ...formData, website: e.target.value })}
-                            />
+                            <label className="text-xs font-black uppercase tracking-widest text-luxury-gold">Agency Background</label>
                             <textarea
                                 className="w-full bg-gray-50 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-luxury-gold transition-all min-h-[100px]"
                                 placeholder="Short about the agency..."
