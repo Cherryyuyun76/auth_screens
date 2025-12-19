@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-luxury-white-pearl text-luxury-black font-sans;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-luxury;
+    }
+}
+
+@layer components {
+    .btn-gold {
+        @apply px-6 py-3 rounded-full bg-gradient-to-r from-luxury-gold via-luxury-gold-light to-luxury-gold-dark text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300;
+    }
+
+    .card-luxury {
+        @apply bg-white rounded-2xl shadow-sm border border-luxury-gold/10 p-6 hover:shadow-md transition-shadow duration-300;
+    }
+
+    .glass-header {
+        @apply bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-luxury-gold/10;
+    }
+}
+
+/* Custom Luxury Gradients */
+.gold-text {
+    background: linear-gradient(135deg, #AF9B5C 0%, #D4AF37 50%, #F9E2AF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

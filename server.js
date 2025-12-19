@@ -4,76 +4,64 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const db = require('./db');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'data', 'db.json');
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve frontend files
 
-// Helper to ensure data directory exists
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// Default DB Structure
-const DEFAULT_DB = {
-    users: [
-        { id: 1, name: "Admin", email: "admin@eventflow.com", password: "password123", role: "admin" }
-    ],
-    events: [], vendors: [], tasks: [],
-    stats: { totalEvents: 0, totalAttendees: 0, totalRevenue: 0, activeVendors: 0 }
-};
-
-// Helper to read DB (with Auto-Repair)
-const readDB = () => {
-    try {
-        if (!fs.existsSync(DB_FILE)) {
-            console.log("Database file missing. Initializing with defaults...");
-            writeDB(DEFAULT_DB);
-            return DEFAULT_DB;
-        }
-        const data = fs.readFileSync(DB_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error("Database corrupted! Auto-repairing with defaults...", err);
-        // If corrupted, we return a safe object to prevent app crash
-        return DEFAULT_DB;
-    }
-};
-
-// Helper to write DB (Atomic Write to prevent corruption)
-const writeDB = (data) => {
-    const TEMP_FILE = DB_FILE + '.tmp';
-    try {
-        // 1. Write to a temporary file first
-        fs.writeFileSync(TEMP_FILE, JSON.stringify(data, null, 2));
-        // 2. Rename the temp file to the real file (Atomic operation in OS)
-        fs.renameSync(TEMP_FILE, DB_FILE);
-        return true;
-    } catch (err) {
-        console.error("Database write error:", err);
-        if (fs.existsSync(TEMP_FILE)) fs.unlinkSync(TEMP_FILE); // Cleanup
-        return false;
-    }
-};
+// --- DATABASE MIGRATION COMPLETED ---
+// Using MySQL instead of db.json
 
 // --- API ROUTES ---
 
 // Login API
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-    const db = readDB();
-    const user = db.users.find(u => u.email === email && u.password === password);
+    console.log(`[Auth] Login attempt for: ${email}`);
+    try {
+        const [rows] = await db.query('SELECT id, name, role FROM users WHERE email = ? AND password = ?', [email, password]);
+        const user = rows[0];
 
-    if (user) {
-        res.json({ success: true, user: { id: user.id, name: user.name, role: user.role } });
-    } else {
-        res.status(401).json({ success: false, message: "Invalid credentials" });
+        if (user) {
+            console.log(`[Auth] Login success: ${email}`);
+            res.json({ success: true, user: { id: user.id, name: user.name, role: user.role } });
+        } else {
+            console.log(`[Auth] Login failed: ${email} (Invalid credentials)`);
+            res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+    } catch (err) {
+        console.error("[Auth] Database error during login:", err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
+});
+
+// Register API
+app.post('/api/register', async (req, res) => {
+    const { email, password, name } = req.body;
+    const userName = name || email.split('@')[0];
+    console.log(`[Auth] Registration attempt for: ${email}`);
+
+    try {
+        // Check if user exists
+        const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, message: "User already exists" });
+        }
+
+        const [result] = await db.query('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            [userName, email, password, 'admin']);
+
+        console.log(`[Auth] Registration success: ${email}`);
+        res.json({ success: true, user: { id: result.insertId, name: userName, role: 'admin' } });
+    } catch (err) {
+        console.error("[Auth] Database error during registration:", err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
@@ -90,189 +78,243 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // Get Stats
-app.get('/api/stats', (req, res) => {
-    const db = readDB();
-    res.json(db.stats);
+app.get('/api/stats', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM stats WHERE id = 1');
+        res.json(rows[0] || { totalEvents: 0, totalAttendees: 0, totalRevenue: 0, activeVendors: 0 });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
 // -- EVENTS --
-app.get('/api/events', (req, res) => {
-    const db = readDB();
-    res.json(db.events);
+app.get('/api/events', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM events');
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
-app.post('/api/events', (req, res) => {
+app.post('/api/events', async (req, res) => {
     const { name, date, location, budget } = req.body;
     if (!name || !date || !location) {
         return res.status(400).json({ success: false, message: "Required fields missing: name, date, or location" });
     }
 
-    const db = readDB();
-    const newEvent = {
-        id: Date.now(),
-        name: String(name),
-        date: String(date),
-        location: String(location),
-        budget: Number(budget) || 0,
-        status: 'Planning'
-    };
-    db.events.push(newEvent);
-    db.stats.totalEvents = (db.stats.totalEvents || 0) + 1;
-    writeDB(db);
-    res.json({ success: true, message: "Event Added Successfully", event: newEvent });
-});
+    try {
+        const newEvent = {
+            id: Date.now(),
+            name: String(name),
+            date: String(date),
+            location: String(location),
+            budget: Number(budget) || 0,
+            status: 'Planning'
+        };
+        await db.query('INSERT INTO events (id, name, date, location, budget, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [newEvent.id, newEvent.name, newEvent.date, newEvent.location, newEvent.budget, newEvent.status]);
 
-app.delete('/api/events/:id', (req, res) => {
-    const db = readDB();
-    const id = Number(req.params.id);
-    if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
+        await db.query('UPDATE stats SET totalEvents = totalEvents + 1 WHERE id = 1');
 
-    console.log(`[DELETE Event] ID: ${id}`);
-    const initialLength = db.events.length;
-    db.events = db.events.filter(e => Number(e.id) !== id);
-
-    if (db.events.length < initialLength) {
-        db.stats.totalEvents = Math.max(0, (db.stats.totalEvents || 1) - 1);
-        writeDB(db);
-        res.json({ success: true, message: "Event Deleted Successfully" });
-    } else {
-        res.status(404).json({ success: false, message: "Event not found" });
+        res.json({ success: true, message: "Event Added Successfully", event: newEvent });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
-app.put('/api/events/:id', (req, res) => {
-    const db = readDB();
+app.delete('/api/events/:id', async (req, res) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
 
-    console.log(`[UPDATE Event] ID: ${id}`);
-    const index = db.events.findIndex(e => Number(e.id) === id);
+    try {
+        const [result] = await db.query('DELETE FROM events WHERE id = ?', [id]);
+        if (result.affectedRows > 0) {
+            await db.query('UPDATE stats SET totalEvents = GREATEST(0, totalEvents - 1) WHERE id = 1');
+            res.json({ success: true, message: "Event Deleted Successfully" });
+        } else {
+            res.status(404).json({ success: false, message: "Event not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
+});
 
-    if (index !== -1) {
-        const { name, date, location, budget } = req.body;
-        db.events[index] = {
-            ...db.events[index],
-            name: name ? String(name) : db.events[index].name,
-            date: date ? String(date) : db.events[index].date,
-            location: location ? String(location) : db.events[index].location,
-            budget: budget !== undefined ? Number(budget) : db.events[index].budget
-        };
-        writeDB(db);
-        res.json({ success: true, message: "Event Updated Successfully", event: db.events[index] });
-    } else {
-        res.status(404).json({ success: false, message: "Event not found" });
+app.put('/api/events/:id', async (req, res) => {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
+
+    const { name, date, location, budget } = req.body;
+    try {
+        const [result] = await db.query(
+            'UPDATE events SET name = COALESCE(?, name), date = COALESCE(?, date), location = COALESCE(?, location), budget = COALESCE(?, budget) WHERE id = ?',
+            [name || null, date || null, location || null, budget !== undefined ? Number(budget) : null, id]
+        );
+
+        if (result.affectedRows > 0) {
+            const [rows] = await db.query('SELECT * FROM events WHERE id = ?', [id]);
+            res.json({ success: true, message: "Event Updated Successfully", event: rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Event not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
 // -- VENDORS --
-app.get('/api/vendors', (req, res) => {
-    const db = readDB();
-    res.json(db.vendors || []);
+app.get('/api/vendors', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM vendors');
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
-app.post('/api/vendors', (req, res) => {
-    const { name, category, contact } = req.body;
+app.post('/api/vendors', async (req, res) => {
+    const { name, category, contact_person, email, phone, country, description, website } = req.body;
     if (!name) return res.status(400).json({ success: false, message: "Vendor name is required" });
 
-    const db = readDB();
-    const newVendor = {
-        id: Date.now(),
-        name: String(name),
-        category: String(category || 'General'),
-        contact: String(contact || 'N/A'),
-        status: 'Active',
-        rating: 5.0
-    };
-    db.vendors.push(newVendor);
-    db.stats.activeVendors = (db.stats.activeVendors || 0) + 1;
-    writeDB(db);
-    res.json({ success: true, message: "Vendor Added Successfully", vendor: newVendor });
+    try {
+        const newVendor = {
+            id: Date.now(),
+            name: String(name),
+            category: String(category || 'General'),
+            contact_person: String(contact_person || 'N/A'),
+            email: String(email || ''),
+            phone: String(phone || ''),
+            country: String(country || 'Cameroon'),
+            description: String(description || ''),
+            website: String(website || ''),
+            status: 'Active',
+            rating: 5.0
+        };
+        await db.query('INSERT INTO vendors (id, name, category, contact_person, email, phone, country, description, website, status, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [newVendor.id, newVendor.name, newVendor.category, newVendor.contact_person, newVendor.email, newVendor.phone, newVendor.country, newVendor.description, newVendor.website, newVendor.status, newVendor.rating]);
+
+        await db.query('UPDATE stats SET activeVendors = activeVendors + 1 WHERE id = 1');
+
+        res.json({ success: true, message: "Vendor Added Successfully", vendor: newVendor });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
 // -- TASKS --
-app.get('/api/tasks', (req, res) => {
-    const db = readDB();
-    res.json(db.tasks || []);
+app.get('/api/tasks', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM tasks');
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
-app.post('/api/tasks', (req, res) => {
-    const { description } = req.body;
+app.post('/api/tasks', async (req, res) => {
+    const { description, assignedTo, deadline } = req.body;
     if (!description) return res.status(400).json({ success: false, message: "Task description is required" });
 
-    const db = readDB();
-    const newTask = {
-        id: Date.now(),
-        ...req.body,
-        description: String(description),
-        status: 'Pending'
-    };
-    db.tasks.push(newTask);
-    writeDB(db);
-    res.json({ success: true, message: "Task Added Successfully", task: newTask });
+    try {
+        const newTask = {
+            id: Date.now(),
+            description: String(description),
+            assignedTo: assignedTo || null,
+            deadline: deadline || null,
+            status: 'Pending'
+        };
+        await db.query('INSERT INTO tasks (id, description, assignedTo, deadline, status) VALUES (?, ?, ?, ?, ?)',
+            [newTask.id, newTask.description, newTask.assignedTo, newTask.deadline, newTask.status]);
+
+        res.json({ success: true, message: "Task Added Successfully", task: newTask });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
-app.put('/api/vendors/:id', (req, res) => {
-    const db = readDB();
+app.put('/api/vendors/:id', async (req, res) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
 
-    console.log(`[UPDATE Vendor] ID: ${id}`);
-    const index = db.vendors.findIndex(v => Number(v.id) === id);
+    const { name, category, contact_person, email, phone, country, description, website, status, rating } = req.body;
+    try {
+        const [result] = await db.query(
+            'UPDATE vendors SET name = COALESCE(?, name), category = COALESCE(?, category), contact_person = COALESCE(?, contact_person), email = COALESCE(?, email), phone = COALESCE(?, phone), country = COALESCE(?, country), description = COALESCE(?, description), website = COALESCE(?, website), status = COALESCE(?, status), rating = COALESCE(?, rating) WHERE id = ?',
+            [name || null, category || null, contact_person || null, email || null, phone || null, country || null, description || null, website || null, status || null, rating !== undefined ? Number(rating) : null, id]
+        );
 
-    if (index !== -1) {
-        db.vendors[index] = { ...db.vendors[index], ...req.body };
-        writeDB(db);
-        res.json({ success: true, message: "Vendor Updated Successfully", vendor: db.vendors[index] });
-    } else {
-        res.status(404).json({ success: false, message: "Vendor not found" });
+        if (result.affectedRows > 0) {
+            const [rows] = await db.query('SELECT * FROM vendors WHERE id = ?', [id]);
+            res.json({ success: true, message: "Vendor Updated Successfully", vendor: rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Vendor not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
-app.put('/api/tasks/:id', (req, res) => {
-    const db = readDB();
+app.put('/api/tasks/:id', async (req, res) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: "Invalid ID" });
 
-    console.log(`[UPDATE Task] ID: ${id}`);
-    const index = db.tasks.findIndex(t => Number(t.id) === id);
+    const { description, assignedTo, deadline, status } = req.body;
+    try {
+        const [result] = await db.query(
+            'UPDATE tasks SET description = COALESCE(?, description), assignedTo = COALESCE(?, assignedTo), deadline = COALESCE(?, deadline), status = COALESCE(?, status) WHERE id = ?',
+            [description || null, assignedTo || null, deadline || null, status || null, id]
+        );
 
-    if (index !== -1) {
-        db.tasks[index] = { ...db.tasks[index], ...req.body };
-        writeDB(db);
-        res.json({ success: true, message: "Task Updated Successfully", task: db.tasks[index] });
-    } else {
-        res.status(404).json({ success: false, message: "Task not found" });
+        if (result.affectedRows > 0) {
+            const [rows] = await db.query('SELECT * FROM tasks WHERE id = ?', [id]);
+            res.json({ success: true, message: "Task Updated Successfully", task: rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Task not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
-app.delete('/api/vendors/:id', (req, res) => {
-    const db = readDB();
+app.delete('/api/vendors/:id', async (req, res) => {
     const id = Number(req.params.id);
-    console.log(`[DELETE Vendor] ID: ${id}`);
-    const initialLength = db.vendors.length;
-    db.vendors = db.vendors.filter(v => v.id !== id);
-
-    if (db.vendors.length < initialLength) {
-        db.stats.activeVendors = Math.max(0, db.stats.activeVendors - 1);
-        writeDB(db);
-        res.json({ success: true, message: "Vendor Deleted Successfully" });
-    } else {
-        res.status(404).json({ success: false, message: "Vendor not found" });
+    try {
+        const [result] = await db.query('DELETE FROM vendors WHERE id = ?', [id]);
+        if (result.affectedRows > 0) {
+            await db.query('UPDATE stats SET activeVendors = GREATEST(0, activeVendors - 1) WHERE id = 1');
+            res.json({ success: true, message: "Vendor Deleted Successfully" });
+        } else {
+            res.status(404).json({ success: false, message: "Vendor not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
-app.delete('/api/tasks/:id', (req, res) => {
-    const db = readDB();
+app.delete('/api/tasks/:id', async (req, res) => {
     const id = Number(req.params.id);
-    console.log(`[DELETE Task] ID: ${id}`);
-    const initialLength = db.tasks.length;
-    db.tasks = db.tasks.filter(t => t.id !== id);
-
-    if (db.tasks.length < initialLength) {
-        writeDB(db);
-        res.json({ success: true, message: "Task Deleted Successfully" });
-    } else {
-        res.status(404).json({ success: false, message: "Task not found" });
+    try {
+        const [result] = await db.query('DELETE FROM tasks WHERE id = ?', [id]);
+        if (result.affectedRows > 0) {
+            res.json({ success: true, message: "Task Deleted Successfully" });
+        } else {
+            res.status(404).json({ success: false, message: "Task not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database error" });
     }
 });
 
