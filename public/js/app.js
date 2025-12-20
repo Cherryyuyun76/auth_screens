@@ -1,5 +1,17 @@
 const API_URL = '/api';
 
+// In your frontend JS (public/js/app.js)
+const API_BASE = 'https://eventflow-backend-production.up.railway.app/api';
+
+async function loginUser(email, password) {
+  const response = await fetch(`${API_BASE}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  return response.json();
+}
+
 // --- AUTH LOGIC ---
 
 async function handleLogin() {

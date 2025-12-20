@@ -52,6 +52,15 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <!-- Your entire landing page HTML here -->
+    </html>
+  `);
+});
+
 // --- DATABASE MIGRATION COMPLETED ---
 // Using MySQL instead of db.json
 
