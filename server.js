@@ -26,6 +26,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'EventFlow MIS API',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production'
+  });
+});
+
 app.get('/', (req, res) => {
   res.json({ 
     message: 'EventFlow MIS API',
