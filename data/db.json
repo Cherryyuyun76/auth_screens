@@ -1,0 +1,158 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Admin User",
+      "email": "admin@eventflow.com",
+      "password": "password123",
+      "role": "admin"
+    }
+  ],
+  "events": [
+    {
+      "id": 1766025587319,
+      "name": "Eating",
+      "date": "2025-12-20",
+      "location": "Musee maritime",
+      "budget": 100,
+      "status": "Planning"
+    }
+  ],
+  "vendors": [
+    {
+      "id": 1766023840223,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023840399,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023841097,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023841892,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023842094,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023842266,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023842448,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023842628,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023842804,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766023842990,
+      "name": "cherry",
+      "category": "ff",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766025606818,
+      "name": "mf",
+      "category": "dd",
+      "contact": "",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766025607018,
+      "name": "mf",
+      "category": "dd",
+      "contact": "",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766025610637,
+      "name": "mf",
+      "category": "dd",
+      "contact": "f",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766025613393,
+      "name": "mf",
+      "category": "dd",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766025613968,
+      "name": "mf",
+      "category": "dd",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    },
+    {
+      "id": 1766025614146,
+      "name": "mf",
+      "category": "dd",
+      "contact": "fokundem653@gmail.com",
+      "status": "Active",
+      "rating": 5
+    }
+  ],
+  "tasks": [],
+  "stats": {
+    "totalEvents": 1,
+    "totalAttendees": 0,
+    "totalRevenue": 0,
+    "activeVendors": 16
+  }
+}

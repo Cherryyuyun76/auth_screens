@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventFlow MIS - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=3">
+    <!-- Chart.js for Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-layer-group"></i> EventFlow
+        </div>
+        <ul>
+            <li class="active" onclick="switchTab('dashboard')"><i class="fas fa-home"></i> <span>Dashboard</span></li>
+            <li onclick="switchTab('events')"><i class="fas fa-calendar-alt"></i> <span>Events</span></li>
+            <li onclick="switchTab('vendors')"><i class="fas fa-users"></i> <span>Vendors</span></li>
+            <li onclick="switchTab('tasks')"><i class="fas fa-tasks"></i> <span>Tasks</span></li>
+            <li class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header>
+            <h2 id="pageTitle">Dashboard</h2>
+            <div class="user-profile">
+                <span id="userName">Admin User</span>
+                <img src="https://ui-avatars.com/api/?name=Admin+User" alt="Profile">
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="content-view active">
+            <!-- KPIS -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <i class="fas fa-calendar-check icon-bg"></i>
+                    <div class="info">
+                        <h3>Total Events</h3>
+                        <span id="stat-events">Loading...</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <i class="fas fa-users icon-bg" style="background: #e1f5fe; color: #03a9f4;"></i>
+                    <div class="info">
+                        <h3>Attendees</h3>
+                        <span id="stat-attendees">Loading...</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <i class="fas fa-coins icon-bg" style="background: #e8f5e9; color: #4caf50;"></i>
+                    <div class="info">
+                        <h3>Revenue</h3>
+                        <span id="stat-revenue">Loading...</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <i class="fas fa-briefcase icon-bg" style="background: #fff3e0; color: #ff9800;"></i>
+                    <div class="info">
+                        <h3>Active Vendors</h3>
+                        <span id="stat-vendors">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Budget vs Expenses</h3>
+                    <canvas id="budgetChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Event Registrations</h3>
+                    <canvas id="regChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- EVENTS VIEW -->
+        <section id="view-events" class="content-view">
+            <div class="table-header">
+                <h3>All Events</h3>
+                <button class="btn-primary" onclick="openModal('eventModal')">+ New Event</button>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Event Name</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Budget</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-table-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VENDORS VIEW -->
+        <section id="view-vendors" class="content-view">
+            <div class="table-header">
+                <h3>Vendor Directory</h3>
+                <button class="btn-primary" onclick="openModal('vendorModal')">+ Add Vendor</button>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vendor Name</th>
+                            <th>Category</th>
+                            <th>Rating</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vendors-table-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TASKS VIEW -->
+        <section id="view-tasks" class="content-view">
+            <div class="table-header">
+                <h3>Tasks</h3>
+                <button class="btn-primary" onclick="openModal('taskModal')">+ New Task</button>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Assigned To</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- MODALS -->
+        <!-- Add Event Modal -->
+        <div id="eventModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('eventModal')">&times;</span>
+                <h2>Add New Event</h2>
+                <form id="addEventForm" onsubmit="return false;">
+                    <input type="text" id="eventName" placeholder="Event Name" required>
+                    <input type="date" id="eventDate" required>
+                    <input type="text" id="eventLocation" placeholder="Location" required>
+                    <input type="number" id="eventBudget" placeholder="Budget" required>
+                    <button type="button" onclick="handleAddEvent()">Save Event</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Event Modal -->
+        <div id="editEventModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editEventModal')">&times;</span>
+                <h2>Edit Event</h2>
+                <form id="editEventForm" onsubmit="return false;">
+                    <input type="hidden" id="editEventId">
+                    <input type="text" id="editEventName" placeholder="Event Name" required>
+                    <input type="date" id="editEventDate" required>
+                    <input type="text" id="editEventLocation" placeholder="Location" required>
+                    <input type="number" id="editEventBudget" placeholder="Budget" required>
+                    <button type="button" onclick="handleUpdateEvent()">Update Event</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Vendor Modal -->
+        <div id="editVendorModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editVendorModal')">&times;</span>
+                <h2>Edit Vendor</h2>
+                <form id="editVendorForm" onsubmit="return false;">
+                    <input type="hidden" id="editVendorId">
+                    <input type="text" id="editVendorName" placeholder="Vendor Name" required>
+                    <input type="text" id="editVendorCategory" placeholder="Category" required>
+                    <input type="email" id="editVendorContact" placeholder="Contact Email" required>
+                    <button type="button" onclick="handleUpdateVendor()">Update Vendor</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editTaskModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editTaskModal')">&times;</span>
+                <h2>Edit Task</h2>
+                <form id="editTaskForm" onsubmit="return false;">
+                    <input type="hidden" id="editTaskId">
+                    <input type="text" id="editTaskDesc" placeholder="Task Description" required>
+                    <input type="text" id="editTaskAssign" placeholder="Assigned To" required>
+                    <input type="date" id="editTaskDeadline" required>
+                    <button type="button" onclick="handleUpdateTask()">Update Task</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Vendor Modal -->
+        <div id="vendorModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('vendorModal')">&times;</span>
+                <h2>Add Vendor</h2>
+                <form id="addVendorForm" onsubmit="return false;">
+                    <input type="text" id="vendorName" placeholder="Vendor Name" required>
+                    <input type="text" id="vendorCategory" placeholder="Category (e.g. Catering)" required>
+                    <input type="email" id="vendorContact" placeholder="Contact Email" required>
+                    <button type="button" onclick="handleAddVendor()">Save Vendor</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div id="taskModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('taskModal')">&times;</span>
+                <h2>Add New Task</h2>
+                <form id="addTaskForm" onsubmit="return false;">
+                    <input type="text" id="taskDesc" placeholder="Task Description" required>
+                    <input type="text" id="taskAssign" placeholder="Assigned To (e.g. Admin)" required>
+                    <input type="date" id="taskDeadline" required>
+                    <button type="button" onclick="handleAddTask()">Save Task</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Action Successful</div>
+
+    <script src="js/app.js?v=3"></script>
+    <script>
+        // Init Dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadDashboardData();
+        });
+    </script>
+</body>
+
+</html>

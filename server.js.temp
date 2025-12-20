@@ -1,0 +1,2 @@
+// Add CORS support for production
+const cors = require('cors');
