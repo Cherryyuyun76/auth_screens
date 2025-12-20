@@ -13,7 +13,35 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors({ origin: [process.env.FRONTEND_URL || "http://localhost:5173", "https://your-site.netlify.app"], credentials: true }));
 app.use(bodyParser.json());
-app.use(express.static('public')); // Serve frontend files
+app.use(express.static('public'));
+
+// --- HEALTH CHECK (FOR RAILWAY/RENDER) ---
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    service: 'EventFlow MIS API',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT
+  });
+});
+
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'EventFlow MIS API',
+    version: '1.0.0',
+    health: '/api/health',
+    endpoints: [
+      '/api/login', 
+      '/api/register', 
+      '/api/contact',
+      '/api/events',
+      '/api/vendors',
+      '/api/tasks',
+      '/api/stats'
+    ]
+  });
+});
 
 // --- DATABASE MIGRATION COMPLETED ---
 // Using MySQL instead of db.json
@@ -324,7 +352,26 @@ app.use((err, req, res, next) => {
     res.status(500).json({ success: false, message: "Internal Server Error - System Recovered" });
 });
 
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({ 
+        success: false, 
+        message: "Endpoint not found",
+        availableEndpoints: [
+            '/api/health',
+            '/api/login',
+            '/api/register',
+            '/api/events',
+            '/api/vendors',
+            '/api/tasks',
+            '/api/stats',
+            '/api/contact'
+        ]
+    });
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`EventFlow MIS Server running on port ${PORT}`);
+    console.log(`Health check available at: http://localhost:${PORT}/api/health`);
 });
